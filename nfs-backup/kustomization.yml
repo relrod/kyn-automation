@@ -1,0 +1,16 @@
+# Update pv.yml to match this in the claimRef.
+# TODO: How do we automate that?
+namespace: nfs-provisioner
+
+secretGenerator:
+  - name: borg-config
+    files:
+      - ssh_private_key=ssh_private_key.txt
+      - borgmatic_config=borgmatic.yml
+
+resources:
+  - imagestream.yml
+  - buildconfig.yml
+  - cronjob.yml
+  - pv.yml
+  - pvc.yml

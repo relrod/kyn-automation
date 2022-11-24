@@ -1,0 +1,18 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "borg-build"
+spec:
+  runPolicy: "Serial"
+  triggers:
+    - type: "ImageChange"
+  source:
+    dockerfile: |
+      FROM quay.io/fedora/fedora:37
+      RUN dnf install -y borgmatic openssh-clients && dnf clean all
+  strategy:
+    dockerStrategy: {}
+  output:
+    to:
+      kind: "ImageStreamTag"
+      name: "borg:latest"

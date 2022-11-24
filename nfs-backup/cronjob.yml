@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: borgmatic
+spec:
+  jobTemplate:
+    metadata:
+      name: borgmatic-job
+    spec:
+      template:
+        metadata:
+          name: borgmatic
+        spec:
+          serviceAccountName: nfs-backups
+          volumes:
+            - name: ssh-key
+              secret:
+                secretName: borg-config
+                items:
+                  - key: ssh_private_key
+                    path: ssh_key
+                defaultMode: 0400
+            - name: borgmatic-config
+              secret:
+                secretName: borg-config
+                items:
+                  - key: borgmatic_config
+                    path: config.yaml
+            - name: nfs
+              persistentVolumeClaim:
+                claimName: nfs-backups
+          containers:
+            - image: image-registry.openshift-image-registry.svc:5000/nfs-provisioner/borg:latest
+              imagePullPolicy: Always
+              name: borg
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - name: ssh-key
+                  mountPath: /ssh_key
+                  readOnly: true
+                - name: borgmatic-config
+                  mountPath: /etc/borgmatic
+                  readOnly: true
+                - name: nfs
+                  mountPath: /mnt/nfs
+              command:
+                - borgmatic
+                - -v
+                - "2"
+                - create
+          restartPolicy: Never
+  schedule: 0 5 * * *
